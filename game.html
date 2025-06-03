@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>五子棋游戏</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        h1 {
+            margin-top: 40px;
+            color: #333;
+        }
+
+        #board {
+            display: grid;
+            grid-template-columns: repeat(15, 32px);
+            grid-template-rows: repeat(15, 32px);
+            gap: 0;
+            margin: 30px 0 20px 0;
+            border: 3px solid #333;
+            background: #e0c68c;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .cell {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #b1975b;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: transparent;
+            transition: background 0.2s;
+        }
+
+        .cell:hover {
+            background: #f5e6b7;
+        }
+
+        .piece {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .black {
+            background: #222;
+        }
+
+        .white {
+            background: #fff;
+            border: 1px solid #bbb;
+        }
+
+        #status {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: #333;
+        }
+
+        button {
+            padding: 8px 24px;
+            font-size: 16px;
+            background: #333;
+            color: #fff;
+
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #555;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>五子棋游戏</h1>
+    <div id="status">黑方先手</div>
+    <button onclick="restartGame()">重新开始</button>
+    <div id="board"></div>
+    <script>
+        const SIZE = 15;
+        let board = [];
+        let current = 1; // 1: 黑, 2: 白
+        let gameOver = false;
+
+        function initBoard() {
+            board = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
+            gameOver = false;
+            current = 1;
+            document.getElementById('status').textContent = '黑方先手';
+            renderBoard();
+        }
+
+        function renderBoard() {
+            const boardDiv = document.getElementById('board');
+            boardDiv.innerHTML = '';
+            for (let row = 0; row < SIZE; row++) {
+                for (let col = 0; col < SIZE; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    cell.onclick = handleClick;
+                    if (board[row][col] === 1) {
+                        const piece = document.createElement('div');
+                        piece.className = 'piece black';
+                        cell.appendChild(piece);
+                    } else if (board[row][col] === 2) {
+                        const piece = document.createElement('div');
+                        piece.className = 'piece white';
+                        cell.appendChild(piece);
+                    }
+                    boardDiv.appendChild(cell);
+                }
+            }
+        }
+
+        function handleClick(e) {
+            if (gameOver) return;
+            const row = parseInt(this.dataset.row);
+            const col = parseInt(this.dataset.col);
+            if (board[row][col] !== 0) return;
+            board[row][col] = current;
+            renderBoard();
+            if (checkWin(row, col, current)) {
+                document.getElementById('status').textContent = (current === 1 ? '黑方' : '白方') + '获胜！';
+                gameOver = true;
+                return;
+            }
+            current = 3 - current;
+            document.getElementById('status').textContent = (current === 1 ? '黑方' : '白方') + '落子';
+        }
+
+        function checkWin(row, col, player) {
+            // 四个方向：横、竖、主对角、副对角
+            const dirs = [
+                [0, 1], [1, 0], [1, 1], [1, -1]
+            ];
+            for (const [dx, dy] of dirs) {
+                let count = 1;
+                for (let d = 1; d < 5; d++) {
+                    const nr = row + dx * d, nc = col + dy * d;
+                    if (nr < 0 || nr >= SIZE || nc < 0 || nc >= SIZE || board[nr][nc] !== player) break;
+                    count++;
+                }
+                for (let d = 1; d < 5; d++) {
+                    const nr = row - dx * d, nc = col - dy * d;
+                    if (nr < 0 || nr >= SIZE || nc < 0 || nc >= SIZE || board[nr][nc] !== player) break;
+                    count++;
+                }
+                if (count >= 5) return true;
+            }
+            return false;
+        }
+
+        function restartGame() {
+            initBoard();
+        }
+
+        // 初始化
+        window.onload = initBoard;
+    </script>
+</body>
+
+</html>
